@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jewelry Cost Manager — Be Heard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#b8902a;--gold-light:#d4ab48;--gold-pale:#f5ede0;--gold-border:#e8d4a8;
+  --bg:#faf7f2;--surface:#ffffff;--surface2:#f5f0e8;
+  --text:#2c1f0e;--text2:#6b5740;--text3:#a8967e;
+  --border:#e8dcc8;--border2:#d4c4a8;
+  --danger:#c0392b;--success:#2e7d52;
+  --shadow:0 2px 12px rgba(44,31,14,.08);--shadow-lg:0 8px 32px rgba(44,31,14,.12);
+  --radius:10px;--radius-lg:16px;
+  --hdr:64px;--tabs:50px;--chrome:calc(var(--hdr) + var(--tabs));
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;overflow-y:scroll}
+h1,h2,h3{font-family:'Playfair Display',serif}
+
+/* HEADER */
+.app-header{background:var(--text);color:#f5ede0;padding:1.25rem 2rem;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:100;height:var(--hdr)}
+.app-header .logo{font-family:'Playfair Display',serif;font-size:1.35rem;letter-spacing:.5px}
+.app-header .logo span{color:var(--gold-light)}
+.app-header .subtitle{font-size:.8rem;color:var(--text3);margin-left:auto;font-style:italic}
+
+/* TABS */
+.tab-bar{display:flex;gap:0;border-bottom:2px solid var(--border);background:var(--surface);padding:0 2rem;position:sticky;top:var(--hdr);z-index:99;height:var(--tabs)}
+.tab-btn{background:none;border:none;padding:.85rem 1.5rem;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;display:flex;align-items:center;gap:.5rem;white-space:nowrap;height:100%}
+.tab-btn:hover{color:var(--gold)}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab-icon{font-size:1.1rem}
+
+/* MAIN CONTENT */
+.main{padding:2rem;max-width:1200px;margin:0 auto}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* SECTION HEADER */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.section-title{font-size:1.4rem;font-weight:600;color:var(--text)}
+.section-title small{font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:400;color:var(--text3);margin-left:.5rem}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.25rem;border-radius:var(--radius);border:none;font-family:'DM Sans',sans-serif;font-size:.875rem;font-weight:500;cursor:pointer;transition:all .15s}
+.btn-primary{background:var(--gold);color:#fff}
+.btn-primary:hover{background:var(--gold-light)}
+.btn-secondary{background:transparent;border:1.5px solid var(--border2);color:var(--text2)}
+.btn-secondary:hover{background:var(--surface2);border-color:var(--gold)}
+.btn-danger{background:transparent;border:1.5px solid #e0b0ab;color:var(--danger);padding:.4rem .8rem;font-size:.8rem}
+.btn-danger:hover{background:#fdf0ef}
+.btn-sm{padding:.35rem .8rem;font-size:.8rem}
+.btn-icon{background:transparent;border:none;cursor:pointer;color:var(--text3);padding:.3rem;border-radius:6px;transition:all .15s;font-size:1rem}
+.btn-icon:hover{background:var(--surface2);color:var(--text)}
+
+/* MATERIAL GRID */
+.material-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem}
+.material-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:all .2s;position:relative}
+.material-card:hover{border-color:var(--gold-border);box-shadow:var(--shadow)}
+.material-img{width:100%;height:130px;object-fit:cover;background:var(--surface2);display:block}
+.material-img-placeholder{width:100%;height:130px;background:var(--gold-pale);display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--gold)}
+.material-info{padding:.85rem}
+.material-name{font-weight:600;font-size:.95rem;color:var(--text);margin-bottom:.25rem}
+.material-detail{font-size:.78rem;color:var(--text3);margin-bottom:.1rem}
+.material-unit-price{font-size:.9rem;font-weight:600;color:var(--gold);margin-top:.4rem}
+.material-actions{display:flex;gap:.3rem;position:absolute;top:.5rem;right:.5rem;opacity:0;transition:opacity .2s}
+.material-card:hover .material-actions{opacity:1}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--text3)}
+.empty-state .empty-icon{font-size:3rem;margin-bottom:1rem;opacity:.5}
+.empty-state p{margin-bottom:1.5rem;font-size:.95rem}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(44,31,14,.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(2px);overflow-y:auto}
+.modal-overlay.hidden{display:none}
+.modal{background:var(--surface);border-radius:var(--radius-lg);width:100%;max-width:520px;box-shadow:var(--shadow-lg);animation:modalIn .2s ease;display:flex;flex-direction:column;max-height:calc(100vh - 2rem);margin:auto}
+@keyframes modalIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+.modal-header{padding:1.5rem 1.5rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.modal-title{font-size:1.2rem;font-weight:600;color:var(--text)}
+.modal-body{padding:1.5rem;overflow-y:auto;flex:1}
+.modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:.75rem;justify-content:flex-end;flex-shrink:0}
+
+/* FORMS */
+.form-group{margin-bottom:1.1rem}
+.form-label{display:block;font-size:.82rem;font-weight:600;color:var(--text2);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.5px}
+.form-control{width:100%;padding:.6rem .9rem;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--text);background:var(--surface);transition:border-color .15s;outline:none}
+.form-control:focus{border-color:var(--gold)}
+.form-control::placeholder{color:var(--text3)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-hint{font-size:.75rem;color:var(--text3);margin-top:.3rem}
+.computed-badge{display:inline-block;padding:.3rem .7rem;background:var(--gold-pale);border:1px solid var(--gold-border);border-radius:6px;font-size:.85rem;font-weight:600;color:var(--gold);margin-top:.3rem}
+
+/* IMAGE UPLOAD */
+.img-upload-area{border:2px dashed var(--border2);border-radius:var(--radius);padding:1.5rem;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.img-upload-area:hover{border-color:var(--gold);background:var(--gold-pale)}
+.img-upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.img-preview{width:100%;max-height:160px;object-fit:contain;border-radius:6px;display:none}
+.img-upload-icon{font-size:2rem;color:var(--text3);margin-bottom:.5rem}
+.img-upload-text{font-size:.8rem;color:var(--text3)}
+
+/* PRODUCT BUILDER */
+.product-builder{display:grid;grid-template-columns:1fr 380px;gap:1.5rem;align-items:start}
+@media(max-width:800px){.product-builder{grid-template-columns:1fr}}
+.builder-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem}
+.builder-card-title{font-size:1rem;font-weight:600;color:var(--text);margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem}
+
+/* MATERIAL ROWS */
+.material-row{display:grid;grid-template-columns:1fr 80px 110px 28px;gap:.5rem;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border)}
+.material-row:last-child{border-bottom:none}
+.material-row-qty{text-align:center}
+.material-row-price{font-size:.85rem;font-weight:600;color:var(--gold);text-align:right;white-space:nowrap}
+.add-material-row{display:flex;align-items:center;gap:.5rem;padding:.5rem 0;color:var(--gold);cursor:pointer;font-size:.85rem;font-weight:500;border-top:1px dashed var(--gold-border);margin-top:.25rem}
+.add-material-row:hover{color:var(--gold-light)}
+/* CUSTOM MATERIAL DROPDOWN */
+.mat-dd{position:relative;width:100%}
+.mat-dd-trigger{display:flex;align-items:center;gap:.5rem;padding:.35rem .65rem;border:1.5px solid var(--border);border-radius:var(--radius);cursor:pointer;background:var(--surface);transition:border-color .15s;min-height:40px;user-select:none}
+.mat-dd-trigger:hover{border-color:var(--border2)}
+.mat-dd-trigger.open{border-color:var(--gold);border-bottom-left-radius:0;border-bottom-right-radius:0}
+.mat-dd-thumb{width:30px;height:30px;border-radius:5px;object-fit:cover;flex-shrink:0;background:var(--gold-pale);display:flex;align-items:center;justify-content:center;font-size:.9rem;overflow:hidden}
+.mat-dd-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.mat-dd-label{flex:1;font-size:.82rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mat-dd-label.ph{color:var(--text3)}
+.mat-dd-arrow{font-size:.65rem;color:var(--text3);flex-shrink:0;transition:transform .15s}
+.mat-dd-trigger.open .mat-dd-arrow{transform:rotate(180deg)}
+.mat-dd-panel{position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--gold);border-top:none;border-radius:0 0 var(--radius) var(--radius);z-index:300;max-height:280px;overflow-y:auto;box-shadow:var(--shadow-lg);display:none}
+.mat-dd-panel.open{display:block}
+/* Search box pinned inside dropdown */
+.mat-dd-search{position:sticky;top:0;background:var(--surface);padding:.5rem .6rem;border-bottom:1px solid var(--border);z-index:1}
+.mat-dd-search input{width:100%;padding:.35rem .7rem .35rem 2rem;border:1.5px solid var(--border);border-radius:6px;font-size:.82rem;font-family:'DM Sans',sans-serif;outline:none;color:var(--text);background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a8967e' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat .55rem center}
+.mat-dd-search input:focus{border-color:var(--gold)}
+.mat-dd-search input::placeholder{color:var(--text3)}
+.mat-no-result{padding:.9rem .7rem;text-align:center;color:var(--text3);font-size:.8rem;display:none}
+.mat-opt{display:flex;align-items:center;gap:.65rem;padding:.5rem .7rem;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--border)}
+.mat-opt:last-child{border-bottom:none}
+.mat-opt:hover,.mat-opt.sel{background:var(--gold-pale)}
+.mat-opt-thumb{width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.1rem;overflow:hidden}
+.mat-opt-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.mat-opt-name{font-size:.83rem;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mat-opt-price{font-size:.72rem;color:var(--gold);margin-top:.05rem}
+
+/* COST SUMMARY */
+.right-col{position:sticky;top:calc(var(--chrome) + 1rem);max-height:calc(100vh - var(--chrome) - 2rem);overflow-y:auto;display:flex;flex-direction:column;gap:1.25rem;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.right-col::-webkit-scrollbar{width:5px}
+.right-col::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.cost-summary{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;flex-shrink:0}
+.cost-line{display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;font-size:.9rem;border-bottom:1px solid var(--border)}
+.cost-line:last-child{border-bottom:none}
+.cost-line.total{font-weight:600;font-size:1rem;color:var(--text)}
+.cost-line.selling{font-weight:700;font-size:1.1rem;color:var(--success);padding-top:.75rem;margin-top:.25rem}
+.cost-line-label{color:var(--text2)}
+.cost-divider{border:none;border-top:2px solid var(--border);margin:.75rem 0}
+
+/* SAVED PRODUCTS */
+.product-list{display:flex;flex-direction:column;gap:.75rem;margin-top:1.5rem}
+.product-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;display:flex;align-items:center;gap:1rem;cursor:pointer;transition:all .2s}
+.product-item:hover{border-color:var(--gold-border);box-shadow:var(--shadow)}
+.product-item.active-product{border-color:var(--gold);background:var(--gold-pale)}
+.product-item-name{font-weight:600;font-size:.95rem;flex:1}
+.product-item-meta{font-size:.78rem;color:var(--text3);margin-top:.15rem}
+.product-item-price{font-weight:700;color:var(--success);font-size:.95rem;white-space:nowrap}
+.product-item-actions{display:flex;gap:.3rem;margin-left:.5rem}
+
+/* COMPARISON TABLE */
+.comparison-wrapper{overflow-x:auto}
+.comparison-table{width:100%;border-collapse:collapse;font-size:.88rem;min-width:600px}
+.comparison-table th{background:var(--text);color:#f5ede0;padding:.75rem 1rem;text-align:left;font-weight:500;font-size:.82rem;letter-spacing:.3px}
+.comparison-table th:first-child{border-radius:10px 0 0 0}
+.comparison-table th:last-child{border-radius:0 10px 0 0}
+.comparison-table td{padding:.7rem 1rem;border-bottom:1px solid var(--border);vertical-align:top}
+.comparison-table tr:hover td{background:var(--gold-pale)}
+.comparison-table .td-product{font-weight:600;color:var(--text)}
+.comparison-table .td-mat-list{font-size:.78rem;color:var(--text2);line-height:1.7}
+.comparison-table .td-cost{font-weight:600;color:var(--gold)}
+.comparison-table .td-sell{font-weight:700;color:var(--success)}
+.comparison-table .td-profit{color:var(--text3)}
+.badge-profit{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.75rem;font-weight:600;background:#e8f5ee;color:var(--success)}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:#f5ede0;padding:.8rem 1.25rem;border-radius:var(--radius);font-size:.875rem;font-weight:500;z-index:9999;animation:toastIn .25s ease;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:.5rem}
+.toast.hidden{display:none}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.toast-success::before{content:'✓';color:#4caf72;font-weight:700}
+.toast-error::before{content:'✗';color:#e57373;font-weight:700}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:1.75rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;text-align:center}
+.stat-value{font-size:1.6rem;font-weight:600;color:var(--gold);font-family:'Playfair Display',serif}
+.stat-label{font-size:.78rem;color:var(--text3);margin-top:.2rem}
+
+/* CHIP TAG */
+.unit-chip{display:inline-block;padding:.15rem .55rem;border-radius:20px;font-size:.72rem;font-weight:600;background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--surface2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+select.form-control option{background:#fff;color:var(--text)}
+
+/* MATERIAL TOOLBAR */
+.mat-toolbar{display:flex;gap:.75rem;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap}
+.mat-search-wrap{position:relative;flex:1;min-width:180px;max-width:360px}
+.mat-search-wrap svg{position:absolute;left:.7rem;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)}
+.mat-search-input{width:100%;padding:.55rem .9rem .55rem 2.2rem;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:.875rem;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s}
+.mat-search-input:focus{border-color:var(--gold)}
+.mat-search-input::placeholder{color:var(--text3)}
+.mat-sort-select{padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:.875rem;color:var(--text2);background:var(--surface);outline:none;cursor:pointer;transition:border-color .15s}
+.mat-sort-select:focus{border-color:var(--gold)}
+.mat-filter-count{font-size:.8rem;color:var(--text3);margin-left:auto;white-space:nowrap}
+
+/* BACKUP BAR */
+.backup-bar{display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1.25rem;font-size:.82rem;color:var(--text2);flex-wrap:wrap}
+.backup-bar .backup-label{font-weight:600;color:var(--text);margin-right:.25rem}
+.backup-bar .backup-hint{color:var(--text3);font-size:.78rem;margin-left:auto}
+@media(max-width:600px){.backup-bar .backup-hint{display:none}}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div>💎</div>
+  <div class="logo">Jewelry <span>Cost</span> Manager</div>
+  <div class="subtitle">Quản lý nguyên liệu & tính giá sản phẩm</div>
+</header>
+
+<nav class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('materials')" id="tab-materials">
+    <span class="tab-icon">📦</span> Kho Nguyên Liệu
+  </button>
+  <button class="tab-btn" onclick="switchTab('products')" id="tab-products">
+    <span class="tab-icon">💰</span> Tính Giá Sản Phẩm
+  </button>
+  <button class="tab-btn" onclick="switchTab('compare')" id="tab-compare">
+    <span class="tab-icon">📊</span> So Sánh Sản Phẩm
+  </button>
+</nav>
+
+<main class="main">
+
+  <!-- BACKUP BAR (always visible) -->
+  <div class="backup-bar">
+    <span class="backup-label">💾 Dữ liệu</span>
+    <button class="btn btn-secondary btn-sm" onclick="exportData()">⬇ Xuất JSON</button>
+    <button class="btn btn-secondary btn-sm" onclick="document.getElementById('import-file').click()">⬆ Nhập JSON</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+    <span class="backup-hint">💡 Xuất JSON để backup & chuyển máy — dữ liệu lưu trong trình duyệt này</span>
+  </div>
+
+  <!-- TAB 1: MATERIALS -->
+  <section class="tab-panel active" id="panel-materials">
+    <div class="section-header">
+      <h2 class="section-title">Kho Nguyên Liệu <small id="mat-count">0 nguyên liệu</small></h2>
+      <button class="btn btn-primary" onclick="openMaterialModal()">＋ Thêm nguyên liệu</button>
+    </div>
+
+    <!-- Toolbar: search + sort -->
+    <div class="mat-toolbar" id="mat-toolbar" style="display:none">
+      <div class="mat-search-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" class="mat-search-input" id="mat-search"
+               placeholder="Tìm tên nguyên liệu, nhà cung cấp..."
+               oninput="renderMaterials()">
+      </div>
+      <select class="mat-sort-select" id="mat-sort" onchange="renderMaterials()">
+        <option value="">⇅ Thứ tự mặc định</option>
+        <option value="price-desc">↓ Mắc nhất → Rẻ nhất</option>
+        <option value="price-asc">↑ Rẻ nhất → Mắc nhất</option>
+        <option value="name-asc">A → Z</option>
+        <option value="name-desc">Z → A</option>
+      </select>
+      <span class="mat-filter-count" id="mat-filter-count"></span>
+    </div>
+    <div class="stats-row" id="mat-stats" style="display:none">
+      <div class="stat-card"><div class="stat-value" id="stat-total-types">0</div><div class="stat-label">Loại nguyên liệu</div></div>
+      <div class="stat-card"><div class="stat-value" id="stat-total-invest">0đ</div><div class="stat-label">Tổng tiền đã đầu tư</div></div>
+    </div>
+    <div class="material-grid" id="material-grid"></div>
+    <div class="empty-state" id="mat-empty">
+      <div class="empty-icon">📦</div>
+      <p>Chưa có nguyên liệu nào.<br>Hãy thêm nguyên liệu đầu tiên để bắt đầu!</p>
+      <button class="btn btn-primary" onclick="openMaterialModal()">＋ Thêm nguyên liệu</button>
+    </div>
+  </section>
+
+  <!-- TAB 2: PRODUCTS -->
+  <section class="tab-panel" id="panel-products">
+    <div class="section-header">
+      <h2 class="section-title">Tính Giá Sản Phẩm</h2>
+      <button class="btn btn-primary" onclick="newProduct()">＋ Sản phẩm mới</button>
+    </div>
+    <div class="product-builder">
+      <!-- Builder form -->
+      <div>
+        <div class="builder-card">
+          <div class="builder-card-title">✏️ Thông tin sản phẩm</div>
+          <div class="form-group">
+            <label class="form-label">Tên sản phẩm</label>
+            <input type="text" class="form-control" id="product-name" placeholder="VD: Vòng cổ ngọc trai A">
+          </div>
+          <div class="builder-card-title" style="margin-top:1.25rem">🧪 Nguyên liệu sử dụng</div>
+          <div style="margin-bottom:.5rem">
+            <div class="material-row" style="font-size:.75rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--border)">
+              <span>Nguyên liệu</span><span style="text-align:center">Số lượng</span><span style="text-align:right">Thành tiền</span><span></span>
+            </div>
+          </div>
+          <div id="material-rows"></div>
+          <div class="add-material-row" onclick="addMaterialRow()">
+            <span style="font-size:1.2rem">＋</span> Thêm nguyên liệu
+          </div>
+        </div>
+
+        <div class="builder-card" style="margin-top:1rem">
+          <div class="builder-card-title">⚙️ Chi phí & Lợi nhuận</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Chi phí nhân công (đ)</label>
+              <input type="number" class="form-control" id="labor-cost" placeholder="0" oninput="updateSummary()" min="0">
+              <div class="form-hint">Chi phí làm thủ công, gia công, v.v.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tỉ lệ lợi nhuận (%)</label>
+              <input type="number" class="form-control" id="profit-margin" placeholder="30" min="0" max="99" oninput="updateSummary()" value="30">
+              <div class="form-hint">% lợi nhuận trên giá bán</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ghi chú sản phẩm</label>
+            <textarea class="form-control" id="product-notes" rows="2" placeholder="Mô tả, phân loại, khách hàng mục tiêu..."></textarea>
+          </div>
+          <div style="display:flex;gap:.75rem;margin-top:.5rem">
+            <button class="btn btn-primary" style="flex:1" onclick="saveProduct()">💾 Lưu sản phẩm</button>
+            <button class="btn btn-secondary" onclick="newProduct()">Mới</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: summary + saved -->
+      <div class="right-col">
+        <div class="cost-summary" id="cost-summary">
+          <div class="builder-card-title" style="margin-bottom:1rem">📋 Chi phí ước tính</div>
+          <div class="cost-line">
+            <span class="cost-line-label">Chi phí nguyên liệu</span>
+            <span id="sum-material">0đ</span>
+          </div>
+          <div class="cost-line">
+            <span class="cost-line-label">Chi phí nhân công</span>
+            <span id="sum-labor">0đ</span>
+          </div>
+          <hr class="cost-divider">
+          <div class="cost-line total">
+            <span class="cost-line-label">Giá vốn</span>
+            <span id="sum-cost">0đ</span>
+          </div>
+          <div class="cost-line">
+            <span class="cost-line-label">Lợi nhuận (<span id="sum-margin-pct">30</span>%)</span>
+            <span id="sum-profit-amt">0đ</span>
+          </div>
+          <hr class="cost-divider">
+          <div class="cost-line selling">
+            <span>💰 Giá bán đề xuất</span>
+            <span id="sum-selling">0đ</span>
+          </div>
+          <div style="margin-top:1rem;font-size:.75rem;color:var(--text3);line-height:1.5">
+            Giá bán = Giá vốn ÷ (1 − lợi nhuận%)<br>
+            Lợi nhuận% tính trên giá bán
+          </div>
+        </div>
+
+        <!-- Saved products list -->
+        <div>
+          <div style="font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between">
+            <span>Đã lưu (<span id="saved-count">0</span>)</span>
+          </div>
+          <div id="saved-products-list" class="product-list"></div>
+          <div id="saved-empty" style="font-size:.85rem;color:var(--text3);text-align:center;padding:1.5rem;display:none">Chưa có sản phẩm nào được lưu</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 3: COMPARE -->
+  <section class="tab-panel" id="panel-compare">
+    <div class="section-header">
+      <h2 class="section-title">So Sánh Sản Phẩm <small id="compare-count"></small></h2>
+      <button class="btn btn-secondary btn-sm" onclick="exportCSV()">⬇ Xuất CSV</button>
+    </div>
+    <div class="comparison-wrapper">
+      <table class="comparison-table" id="compare-table">
+        <thead>
+          <tr>
+            <th style="width:160px">Sản phẩm</th>
+            <th>Nguyên liệu</th>
+            <th style="width:130px">Chi phí NL</th>
+            <th style="width:110px">Nhân công</th>
+            <th style="width:110px">Giá vốn</th>
+            <th style="width:110px">Giá bán</th>
+            <th style="width:100px">Lợi nhuận</th>
+          </tr>
+        </thead>
+        <tbody id="compare-tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="compare-empty" style="display:none">
+      <div class="empty-icon">📊</div>
+      <p>Chưa có sản phẩm nào để so sánh.<br>Hãy tạo và lưu ít nhất 1 sản phẩm!</p>
+      <button class="btn btn-primary" onclick="switchTab('products')">Tạo sản phẩm</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- MATERIAL MODAL -->
+<div class="modal-overlay hidden" id="material-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="mat-modal-title">Thêm nguyên liệu</h3>
+      <button class="btn-icon" onclick="closeMaterialModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="mat-edit-id">
+      <div class="form-group">
+        <label class="form-label">Hình ảnh (không bắt buộc)</label>
+        <div class="img-upload-area" id="img-upload-area" onclick="triggerImgUpload()">
+          <input type="file" id="mat-image-input" accept="image/*" onchange="handleImageUpload(event)" style="display:none">
+          <div id="img-placeholder">
+            <div class="img-upload-icon">🖼️</div>
+            <div class="img-upload-text">Nhấn để chọn ảnh<br><span style="font-size:.7rem;color:var(--text3)">JPG, PNG, WEBP — tối đa 3MB</span></div>
+          </div>
+          <img id="mat-img-preview" class="img-preview" src="" alt="">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tên nguyên liệu *</label>
+        <input type="text" class="form-control" id="mat-name" placeholder="VD: Ngọc trai lớn, Móc khoá bạc...">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Đơn vị tính *</label>
+          <select class="form-control" id="mat-unit">
+            <option value="viên">viên</option>
+            <option value="cái">cái</option>
+            <option value="chiếc">chiếc</option>
+            <option value="cm">cm</option>
+            <option value="m">m</option>
+            <option value="g">g</option>
+            <option value="kg">kg</option>
+            <option value="cuộn">cuộn</option>
+            <option value="hộp">hộp</option>
+            <option value="gói">gói</option>
+            <option value="sợi">sợi</option>
+            <option value="đôi">đôi</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Số lượng mua *</label>
+          <input type="number" class="form-control" id="mat-qty" placeholder="100" min="1" oninput="computeUnitPrice()">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Giá mua (đ) *</label>
+          <input type="number" class="form-control" id="mat-price" placeholder="200000" min="0" oninput="computeUnitPrice()">
+          <div class="form-hint">Tổng tiền thanh toán cho lô hàng</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Giá / đơn vị</label>
+          <div style="margin-top:.3rem"><span class="computed-badge" id="mat-unit-price-display">—</span></div>
+          <div class="form-hint">Tự động tính = Giá mua ÷ Số lượng</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nhà cung cấp (không bắt buộc)</label>
+        <input type="text" class="form-control" id="mat-supplier" placeholder="VD: Chợ Bến Thành, AliExpress...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeMaterialModal()">Huỷ</button>
+      <button class="btn btn-primary" onclick="saveMaterial()">💾 Lưu nguyên liệu</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<script>
+// ===================== DATA — IndexedDB =====================
+let materials = [];
+let products = [];
+let currentProductId = null;
+let currentImgData = null;
+let db = null;
+
+const DB_NAME = 'JewelryCostDB';
+const DB_VERSION = 1;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('materials')) d.createObjectStore('materials', { keyPath: 'id' });
+      if (!d.objectStoreNames.contains('products'))  d.createObjectStore('products',  { keyPath: 'id' });
+    };
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function dbGetAll(store) {
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(store, 'readonly').objectStore(store).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
+  });
+}
+
+function dbPut(store, item) {
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(store, 'readwrite').objectStore(store).put(item);
+    req.onsuccess = () => resolve();
+    req.onerror   = () => reject(req.error);
+  });
+}
+
+function dbDelete(store, id) {
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(store, 'readwrite').objectStore(store).delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror   = () => reject(req.error);
+  });
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function fmtPrice(n) {
+  if (!n && n !== 0) return '—';
+  return new Intl.NumberFormat('vi-VN').format(Math.round(n)) + 'đ';
+}
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast toast-' + type;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.className = 'toast hidden', 2800);
+}
+
+// ===================== TABS =====================
+function switchTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'compare') renderCompare();
+  if (tab === 'products') renderSavedList();
+}
+
+// ===================== MATERIALS =====================
+function renderMaterials() {
+  const grid = document.getElementById('material-grid');
+  const empty = document.getElementById('mat-empty');
+  const stats = document.getElementById('mat-stats');
+  const toolbar = document.getElementById('mat-toolbar');
+  const filterCount = document.getElementById('mat-filter-count');
+
+  if (!materials.length) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    stats.style.display = 'none';
+    toolbar.style.display = 'none';
+    document.getElementById('mat-count').textContent = '0 nguyên liệu';
+    return;
+  }
+
+  empty.style.display = 'none';
+  stats.style.display = 'grid';
+  toolbar.style.display = 'flex';
+
+  const totalInvest = materials.reduce((s, m) => s + (parseFloat(m.purchasePrice) || 0), 0);
+  document.getElementById('stat-total-types').textContent = materials.length;
+  document.getElementById('stat-total-invest').textContent = fmtPrice(totalInvest);
+
+  // Read filter values
+  const q = (document.getElementById('mat-search')?.value || '').trim().toLowerCase();
+  const sort = document.getElementById('mat-sort')?.value || '';
+
+  // Filter by search query
+  let list = materials.filter(m =>
+    !q ||
+    m.name.toLowerCase().includes(q) ||
+    (m.supplier || '').toLowerCase().includes(q)
+  );
+
+  // Sort
+  if (sort === 'price-desc') list.sort((a, b) => b.unitPrice - a.unitPrice);
+  else if (sort === 'price-asc') list.sort((a, b) => a.unitPrice - b.unitPrice);
+  else if (sort === 'name-asc') list.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+  else if (sort === 'name-desc') list.sort((a, b) => b.name.localeCompare(a.name, 'vi'));
+
+  // Update counts
+  document.getElementById('mat-count').textContent = materials.length + ' nguyên liệu';
+  filterCount.textContent = q ? `Hiển thị ${list.length} / ${materials.length}` : '';
+
+  // No results after filter
+  if (!list.length) {
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:3rem 1rem;color:var(--text3)">
+        <div style="font-size:2.5rem;margin-bottom:.75rem;opacity:.5">🔍</div>
+        <div style="font-size:.95rem">Không tìm thấy nguyên liệu khớp với "<strong style="color:var(--text2)">${q}</strong>"</div>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(m => `
+    <div class="material-card">
+      <div class="material-actions">
+        <button class="btn-icon btn-sm" title="Sửa" onclick="editMaterial('${m.id}')">✏️</button>
+        <button class="btn-icon btn-sm" title="Xoá" onclick="deleteMaterial('${m.id}')">🗑️</button>
+      </div>
+      ${m.image
+        ? `<img class="material-img" src="${m.image}" alt="${m.name}">`
+        : `<div class="material-img-placeholder">💎</div>`}
+      <div class="material-info">
+        <div class="material-name">${m.name}</div>
+        ${m.supplier ? `<div class="material-detail">📍 ${m.supplier}</div>` : ''}
+        <div class="material-detail">Mua: ${fmtPrice(m.purchasePrice)} / ${m.purchaseQty} ${m.unit}</div>
+        <div class="material-unit-price">${fmtPrice(m.unitPrice)} <span class="unit-chip">/${m.unit}</span></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openMaterialModal(editId) {
+  currentImgData = null;
+  document.getElementById('mat-edit-id').value = editId || '';
+  document.getElementById('mat-name').value = '';
+  document.getElementById('mat-unit').value = 'viên';
+  document.getElementById('mat-qty').value = '';
+  document.getElementById('mat-price').value = '';
+  document.getElementById('mat-supplier').value = '';
+  document.getElementById('mat-unit-price-display').textContent = '—';
+  document.getElementById('mat-img-preview').style.display = 'none';
+  document.getElementById('img-placeholder').style.display = 'block';
+  document.getElementById('mat-modal-title').textContent = editId ? 'Chỉnh sửa nguyên liệu' : 'Thêm nguyên liệu';
+
+  if (editId) {
+    const m = materials.find(x => x.id === editId);
+    if (m) {
+      document.getElementById('mat-name').value = m.name;
+      document.getElementById('mat-unit').value = m.unit;
+      document.getElementById('mat-qty').value = m.purchaseQty;
+      document.getElementById('mat-price').value = m.purchasePrice;
+      document.getElementById('mat-supplier').value = m.supplier || '';
+      computeUnitPrice();
+      if (m.image) {
+        currentImgData = m.image;
+        document.getElementById('mat-img-preview').src = m.image;
+        document.getElementById('mat-img-preview').style.display = 'block';
+        document.getElementById('img-placeholder').style.display = 'none';
+      }
+    }
+  }
+  document.getElementById('material-modal').classList.remove('hidden');
+}
+
+function editMaterial(id) { openMaterialModal(id); }
+
+function closeMaterialModal() {
+  document.getElementById('material-modal').classList.add('hidden');
+}
+
+function triggerImgUpload() {
+  document.getElementById('mat-image-input').click();
+}
+
+function handleImageUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 3 * 1024 * 1024) { showToast('Ảnh quá lớn, tối đa 3MB', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    currentImgData = ev.target.result;
+    document.getElementById('mat-img-preview').src = currentImgData;
+    document.getElementById('mat-img-preview').style.display = 'block';
+    document.getElementById('img-placeholder').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function computeUnitPrice() {
+  const price = parseFloat(document.getElementById('mat-price').value) || 0;
+  const qty = parseFloat(document.getElementById('mat-qty').value) || 0;
+  const el = document.getElementById('mat-unit-price-display');
+  const unit = document.getElementById('mat-unit').value;
+  if (qty > 0 && price > 0) {
+    el.textContent = fmtPrice(price / qty) + ' / ' + unit;
+  } else {
+    el.textContent = '—';
+  }
+}
+
+async function saveMaterial() {
+  const name = document.getElementById('mat-name').value.trim();
+  const unit = document.getElementById('mat-unit').value;
+  const qty = parseFloat(document.getElementById('mat-qty').value);
+  const price = parseFloat(document.getElementById('mat-price').value);
+
+  if (!name) { showToast('Vui lòng nhập tên nguyên liệu', 'error'); return; }
+  if (!qty || qty <= 0) { showToast('Số lượng mua phải > 0', 'error'); return; }
+  if (isNaN(price) || price < 0) { showToast('Vui lòng nhập giá mua hợp lệ', 'error'); return; }
+
+  const editId = document.getElementById('mat-edit-id').value;
+  const material = {
+    id: editId || uid(),
+    name,
+    unit,
+    purchaseQty: qty,
+    purchasePrice: price,
+    unitPrice: price / qty,
+    supplier: document.getElementById('mat-supplier').value.trim(),
+    image: currentImgData
+  };
+
+  if (editId) {
+    const idx = materials.findIndex(x => x.id === editId);
+    if (idx >= 0) materials[idx] = material;
+  } else {
+    materials.push(material);
+  }
+
+  try {
+    await dbPut('materials', material);
+    renderMaterials();
+    closeMaterialModal();
+    document.getElementById('mat-image-input').value = '';
+    showToast(editId ? 'Đã cập nhật nguyên liệu!' : 'Đã thêm nguyên liệu!');
+  } catch(err) {
+    showToast('Lỗi lưu dữ liệu: ' + err.message, 'error');
+  }
+}
+
+async function deleteMaterial(id) {
+  if (!confirm('Xoá nguyên liệu này?')) return;
+  materials = materials.filter(m => m.id !== id);
+  try {
+    await dbDelete('materials', id);
+    renderMaterials();
+    showToast('Đã xoá nguyên liệu');
+  } catch(err) {
+    showToast('Lỗi xoá dữ liệu: ' + err.message, 'error');
+  }
+}
+
+// ===================== PRODUCT BUILDER =====================
+function ddThumb(mat) {
+  return mat && mat.image
+    ? `<div class="mat-dd-thumb"><img src="${mat.image}" alt=""></div>`
+    : `<div class="mat-dd-thumb">💎</div>`;
+}
+function ddOptThumb(mat) {
+  return mat.image
+    ? `<div class="mat-opt-thumb"><img src="${mat.image}" alt=""></div>`
+    : `<div class="mat-opt-thumb">💎</div>`;
+}
+
+function renderDropdownOptions(rowId, selectedId) {
+  if (!materials.length) {
+    return `<div class="mat-opt" style="color:var(--text3);font-size:.8rem;cursor:default">Thêm nguyên liệu ở Tab Kho trước</div>`;
+  }
+  const opts = materials.map(m => `
+    <div class="mat-opt ${m.id === selectedId ? 'sel' : ''}"
+         onclick="selectMat('${rowId}','${m.id}')"
+         data-search="${m.name.toLowerCase()}">
+      ${ddOptThumb(m)}
+      <div style="flex:1;overflow:hidden">
+        <div class="mat-opt-name">${m.name}</div>
+        <div class="mat-opt-price">${fmtPrice(m.unitPrice)} / ${m.unit}</div>
+      </div>
+    </div>
+  `).join('');
+  return opts + `<div class="mat-no-result">Không tìm thấy nguyên liệu 🔍</div>`;
+}
+
+function toggleDd(rowId) {
+  const panel = document.getElementById('ddp-' + rowId);
+  const trigger = document.getElementById('ddt-' + rowId);
+  const isOpen = panel.classList.contains('open');
+  closeAllDd();
+  if (!isOpen) {
+    panel.classList.add('open');
+    trigger.classList.add('open');
+    // Auto-focus search input
+    const inp = document.getElementById('dds-' + rowId);
+    if (inp) setTimeout(() => inp.focus(), 30);
+  }
+}
+
+function closeAllDd() {
+  document.querySelectorAll('.mat-dd-panel.open').forEach(p => p.classList.remove('open'));
+  document.querySelectorAll('.mat-dd-trigger.open').forEach(t => t.classList.remove('open'));
+  // Reset search state in all dropdowns
+  document.querySelectorAll('.mat-dd-search input').forEach(inp => { inp.value = ''; });
+  document.querySelectorAll('.mat-opt').forEach(o => { o.style.display = ''; });
+  document.querySelectorAll('.mat-no-result').forEach(el => { el.style.display = 'none'; });
+}
+
+function filterMatOpts(rowId, query) {
+  const panel = document.getElementById('ddp-' + rowId);
+  const q = query.trim().toLowerCase();
+  const opts = panel.querySelectorAll('.mat-opt');
+  let visible = 0;
+  opts.forEach(opt => {
+    const match = !q || (opt.dataset.search || '').includes(q);
+    opt.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  const noResult = panel.querySelector('.mat-no-result');
+  if (noResult) noResult.style.display = visible === 0 ? 'block' : 'none';
+}
+
+// Keyboard nav: Enter picks first visible, Escape closes
+function handleDdKey(e, rowId) {
+  if (e.key === 'Escape') { closeAllDd(); return; }
+  if (e.key === 'Enter') {
+    const panel = document.getElementById('ddp-' + rowId);
+    const first = panel.querySelector('.mat-opt:not([style*="display: none"]):not([style*="display:none"])');
+    if (first) first.click();
+  }
+}
+
+function selectMat(rowId, matId) {
+  const mat = materials.find(m => m.id === matId);
+  if (!mat) return;
+  const trigger = document.getElementById('ddt-' + rowId);
+  trigger.dataset.matId = matId;
+  trigger.innerHTML = `${ddThumb(mat)}<span class="mat-dd-label">${mat.name}</span><span class="mat-dd-arrow">▼</span>`;
+  trigger.classList.remove('open');
+  document.getElementById('ddp-' + rowId).classList.remove('open');
+  updateSummary();
+}
+
+function addMaterialRow(matId, qty) {
+  const container = document.getElementById('material-rows');
+  const rowId = 'row-' + uid();
+  const mat = matId ? materials.find(m => m.id === matId) : null;
+  const div = document.createElement('div');
+  div.className = 'material-row';
+  div.id = rowId;
+  div.innerHTML = `
+    <div class="mat-dd" id="dd-${rowId}">
+      <div class="mat-dd-trigger" id="ddt-${rowId}" data-mat-id="${matId || ''}" onclick="toggleDd('${rowId}')">
+        ${mat ? `${ddThumb(mat)}<span class="mat-dd-label">${mat.name}</span>` : `<div class="mat-dd-thumb" style="background:var(--surface2);color:var(--text3)">?</div><span class="mat-dd-label ph">-- Chọn nguyên liệu --</span>`}
+        <span class="mat-dd-arrow">▼</span>
+      </div>
+      <div class="mat-dd-panel" id="ddp-${rowId}">
+        <div class="mat-dd-search">
+          <input type="text" id="dds-${rowId}" placeholder="Tìm nguyên liệu..."
+                 oninput="filterMatOpts('${rowId}',this.value)"
+                 onclick="event.stopPropagation()"
+                 onkeydown="handleDdKey(event,'${rowId}')">
+        </div>
+        ${renderDropdownOptions(rowId, matId)}
+      </div>
+    </div>
+    <input type="number" class="form-control material-row-qty" min="1" placeholder="SL" value="${qty || ''}" oninput="updateSummary()">
+    <div class="material-row-price" id="price-${rowId}">—</div>
+    <button class="btn-icon" onclick="removeMaterialRow('${rowId}')">✕</button>
+  `;
+  container.appendChild(div);
+  updateSummary();
+}
+
+function removeMaterialRow(rowId) {
+  const el = document.getElementById(rowId);
+  if (el) el.remove();
+  updateSummary();
+}
+
+function getRowData() {
+  const rows = document.querySelectorAll('#material-rows .material-row');
+  const items = [];
+  rows.forEach(row => {
+    const trigger = row.querySelector('.mat-dd-trigger');
+    const matId = trigger ? trigger.dataset.matId : '';
+    const qty = parseFloat(row.querySelector('input[type="number"]').value) || 0;
+    const mat = materials.find(m => m.id === matId);
+    const subtotal = mat && qty > 0 ? mat.unitPrice * qty : 0;
+    items.push({ matId, qty, mat, subtotal, rowEl: row });
+  });
+  return items;
+}
+
+function updateSummary() {
+  const rows = getRowData();
+  let matTotal = 0;
+  rows.forEach(({ matId, qty, mat, subtotal, rowEl }) => {
+    const priceEl = rowEl.querySelector('.material-row-price');
+    if (priceEl) priceEl.textContent = mat && qty > 0 ? fmtPrice(subtotal) : '—';
+    matTotal += subtotal;
+  });
+
+  const labor = parseFloat(document.getElementById('labor-cost').value) || 0;
+  const marginPct = parseFloat(document.getElementById('profit-margin').value) || 0;
+  const totalCost = matTotal + labor;
+  const sellingPrice = marginPct < 100 ? totalCost / (1 - marginPct / 100) : 0;
+  const profitAmt = sellingPrice - totalCost;
+
+  document.getElementById('sum-material').textContent = fmtPrice(matTotal);
+  document.getElementById('sum-labor').textContent = fmtPrice(labor);
+  document.getElementById('sum-cost').textContent = fmtPrice(totalCost);
+  document.getElementById('sum-margin-pct').textContent = marginPct;
+  document.getElementById('sum-profit-amt').textContent = fmtPrice(profitAmt);
+  document.getElementById('sum-selling').textContent = fmtPrice(sellingPrice);
+}
+
+function newProduct() {
+  currentProductId = null;
+  document.getElementById('product-name').value = '';
+  document.getElementById('labor-cost').value = '';
+  document.getElementById('profit-margin').value = '30';
+  document.getElementById('product-notes').value = '';
+  document.getElementById('material-rows').innerHTML = '';
+  addMaterialRow();
+  updateSummary();
+  document.querySelectorAll('.product-item').forEach(el => el.classList.remove('active-product'));
+}
+
+async function saveProduct() {
+  const name = document.getElementById('product-name').value.trim();
+  if (!name) { showToast('Vui lòng đặt tên sản phẩm', 'error'); return; }
+
+  const rows = getRowData().filter(r => r.matId && r.qty > 0);
+  if (!rows.length) { showToast('Vui lòng thêm ít nhất 1 nguyên liệu', 'error'); return; }
+
+  const labor = parseFloat(document.getElementById('labor-cost').value) || 0;
+  const marginPct = parseFloat(document.getElementById('profit-margin').value) || 0;
+  const matTotal = rows.reduce((s, r) => s + r.subtotal, 0);
+  const totalCost = matTotal + labor;
+  const sellingPrice = marginPct < 100 ? totalCost / (1 - marginPct / 100) : totalCost;
+
+  const product = {
+    id: currentProductId || uid(),
+    name,
+    notes: document.getElementById('product-notes').value.trim(),
+    laborCost: labor,
+    profitMargin: marginPct,
+    materials: rows.map(r => ({ materialId: r.matId, qty: r.qty })),
+    matTotal,
+    totalCost,
+    sellingPrice,
+    savedAt: Date.now()
+  };
+
+  if (currentProductId) {
+    const idx = products.findIndex(p => p.id === currentProductId);
+    if (idx >= 0) products[idx] = product;
+  } else {
+    products.push(product);
+    currentProductId = product.id;
+  }
+
+  try {
+    await dbPut('products', product);
+    renderSavedList();
+    showToast('Đã lưu sản phẩm "' + name + '"!');
+  } catch(err) {
+    showToast('Lỗi lưu dữ liệu: ' + err.message, 'error');
+  }
+}
+
+function loadProduct(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  currentProductId = id;
+  document.getElementById('product-name').value = p.name;
+  document.getElementById('labor-cost').value = p.laborCost || '';
+  document.getElementById('profit-margin').value = p.profitMargin ?? 30;
+  document.getElementById('product-notes').value = p.notes || '';
+  document.getElementById('material-rows').innerHTML = '';
+  (p.materials || []).forEach(item => addMaterialRow(item.materialId, item.qty));
+  updateSummary();
+  document.querySelectorAll('.product-item').forEach(el => el.classList.remove('active-product'));
+  const activeEl = document.querySelector(`.product-item[data-id="${id}"]`);
+  if (activeEl) activeEl.classList.add('active-product');
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Xoá sản phẩm này?')) return;
+  products = products.filter(p => p.id !== id);
+  if (currentProductId === id) { currentProductId = null; newProduct(); }
+  try {
+    await dbDelete('products', id);
+    renderSavedList();
+    showToast('Đã xoá sản phẩm');
+  } catch(err) {
+    showToast('Lỗi xoá dữ liệu: ' + err.message, 'error');
+  }
+}
+
+function renderSavedList() {
+  const container = document.getElementById('saved-products-list');
+  const empty = document.getElementById('saved-empty');
+  document.getElementById('saved-count').textContent = products.length;
+
+  if (!products.length) {
+    container.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  container.innerHTML = products.slice().reverse().map(p => `
+    <div class="product-item ${p.id === currentProductId ? 'active-product' : ''}" data-id="${p.id}" onclick="loadProduct('${p.id}')">
+      <div style="flex:1">
+        <div class="product-item-name">${p.name}</div>
+        <div class="product-item-meta">Giá vốn: ${fmtPrice(p.totalCost)} · LN ${p.profitMargin}%</div>
+      </div>
+      <div class="product-item-price">${fmtPrice(p.sellingPrice)}</div>
+      <div class="product-item-actions" onclick="event.stopPropagation()">
+        <button class="btn-danger btn-sm" onclick="deleteProduct('${p.id}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===================== COMPARE =====================
+function renderCompare() {
+  const tbody = document.getElementById('compare-tbody');
+  const empty = document.getElementById('compare-empty');
+  const count = document.getElementById('compare-count');
+  count.textContent = products.length + ' sản phẩm';
+
+  if (!products.length) {
+    tbody.innerHTML = '';
+    document.getElementById('compare-table').style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  document.getElementById('compare-table').style.display = 'table';
+
+  tbody.innerHTML = products.map(p => {
+    const matLines = (p.materials || []).map(item => {
+      const mat = materials.find(m => m.id === item.materialId);
+      if (!mat) return '';
+      return `${mat.name} × ${item.qty}${mat.unit}`;
+    }).filter(Boolean).join('<br>');
+
+    const profitAmt = p.sellingPrice - p.totalCost;
+    const profitPct = p.sellingPrice > 0 ? Math.round((profitAmt / p.sellingPrice) * 100) : 0;
+
+    return `
+      <tr>
+        <td class="td-product">
+          ${p.name}
+          ${p.notes ? `<div style="font-size:.75rem;color:var(--text3);margin-top:.2rem">${p.notes}</div>` : ''}
+        </td>
+        <td class="td-mat-list">${matLines || '—'}</td>
+        <td class="td-cost">${fmtPrice(p.matTotal)}</td>
+        <td>${fmtPrice(p.laborCost || 0)}</td>
+        <td class="td-cost">${fmtPrice(p.totalCost)}</td>
+        <td class="td-sell">${fmtPrice(p.sellingPrice)}</td>
+        <td class="td-profit">
+          ${fmtPrice(profitAmt)}<br>
+          <span class="badge-profit">${profitPct}%</span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// ===================== EXPORT CSV =====================
+function exportCSV() {
+  if (!products.length) { showToast('Không có dữ liệu để xuất', 'error'); return; }
+  const header = ['Tên sản phẩm','Chi phí NL (đ)','Nhân công (đ)','Giá vốn (đ)','Lợi nhuận (%)','Giá bán (đ)','Ghi chú'];
+  const rows = products.map(p => [
+    p.name,
+    Math.round(p.matTotal),
+    Math.round(p.laborCost || 0),
+    Math.round(p.totalCost),
+    p.profitMargin,
+    Math.round(p.sellingPrice),
+    p.notes || ''
+  ]);
+  const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'jewelry-products-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  showToast('Đã xuất file CSV!');
+}
+
+// ===================== EXPORT / IMPORT =====================
+function exportData() {
+  const payload = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    materials,
+    products
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const date = new Date().toISOString().slice(0, 10);
+  a.download = `jewelry-data-${date}.json`;
+  a.click();
+  showToast(`Đã xuất ${materials.length} nguyên liệu, ${products.length} sản phẩm`);
+}
+
+async function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('import-file').value = '';
+
+  let payload;
+  try {
+    const text = await file.text();
+    payload = JSON.parse(text);
+  } catch {
+    showToast('File JSON không hợp lệ', 'error'); return;
+  }
+
+  if (!payload.materials && !payload.products) {
+    showToast('File không đúng định dạng', 'error'); return;
+  }
+
+  const mCount = (payload.materials || []).length;
+  const pCount = (payload.products || []).length;
+  const ok = confirm(
+    `File chứa ${mCount} nguyên liệu và ${pCount} sản phẩm.\n\n` +
+    `Chọn OK để GHI ĐÈ toàn bộ dữ liệu hiện tại.\n` +
+    `(Dữ liệu cũ sẽ bị xoá hoàn toàn)`
+  );
+  if (!ok) return;
+
+  try {
+    // Clear existing data
+    await Promise.all([
+      new Promise((res, rej) => {
+        const req = db.transaction('materials','readwrite').objectStore('materials').clear();
+        req.onsuccess = res; req.onerror = rej;
+      }),
+      new Promise((res, rej) => {
+        const req = db.transaction('products','readwrite').objectStore('products').clear();
+        req.onsuccess = res; req.onerror = rej;
+      })
+    ]);
+
+    // Write imported materials
+    materials = payload.materials || [];
+    for (const m of materials) await dbPut('materials', m);
+
+    // Write imported products
+    products = payload.products || [];
+    for (const p of products) await dbPut('products', p);
+
+    renderMaterials();
+    renderSavedList();
+    newProduct();
+    showToast(`Đã nhập ${mCount} nguyên liệu, ${pCount} sản phẩm!`);
+  } catch(err) {
+    showToast('Lỗi khi nhập dữ liệu: ' + err.message, 'error');
+  }
+}
+
+// ===================== INIT =====================
+async function init() {
+  try {
+    db = await openDB();
+    [materials, products] = await Promise.all([
+      dbGetAll('materials'),
+      dbGetAll('products')
+    ]);
+  } catch(err) {
+    showToast('Không thể mở database: ' + err.message, 'error');
+  }
+  renderMaterials();
+  renderSavedList();
+  newProduct();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+
+// Close custom dropdowns on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.mat-dd')) closeAllDd();
+});
+
+// Close modal on overlay click
+document.getElementById('material-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeMaterialModal();
+});
+</script>
+</body>
+</html>
