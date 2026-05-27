@@ -218,6 +218,173 @@ select.form-control option{background:#fff;color:var(--text)}
 .backup-bar .backup-label{font-weight:600;color:var(--text);margin-right:.25rem}
 .backup-bar .backup-hint{color:var(--text3);font-size:.78rem;margin-left:auto}
 @media(max-width:600px){.backup-bar .backup-hint{display:none}}
+/* =========================================
+   MOBILE — ≤ 640px
+   ========================================= */
+@media (max-width: 640px) {
+
+  /* --- Root overrides --- */
+  :root { --hdr: 52px; --tabs: 56px; --chrome: var(--hdr); }
+
+  /* --- Header --- */
+  .app-header { padding: .7rem 1rem; height: var(--hdr); gap: .6rem; }
+  .app-header .logo { font-size: 1.05rem; }
+  .app-header .subtitle { display: none; }
+
+  /* --- Tab bar → bottom navigation --- */
+  .tab-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; top: auto;
+    height: var(--tabs); padding: 0;
+    justify-content: space-around;
+    border-top: 1.5px solid var(--border); border-bottom: none;
+    box-shadow: 0 -4px 20px rgba(44,31,14,.1);
+    z-index: 200;
+  }
+  .tab-btn {
+    flex: 1; flex-direction: column; justify-content: center;
+    padding: .3rem .25rem; font-size: .6rem; gap: .08rem;
+    border-bottom: none; border-top: 2.5px solid transparent;
+    margin: 0; height: 100%;
+  }
+  .tab-btn.active {
+    color: var(--gold);
+    border-bottom-color: transparent;
+    border-top-color: var(--gold);
+    background: var(--gold-pale);
+  }
+  .tab-icon { font-size: 1.3rem; }
+
+  /* --- Main content (pad bottom for bottom nav) --- */
+  .main { padding: 1rem; padding-bottom: calc(var(--tabs) + 1rem); }
+
+  /* --- Section header --- */
+  .section-header { margin-bottom: 1rem; flex-wrap: wrap; gap: .5rem; }
+  .section-title { font-size: 1.05rem; }
+  .section-title small { display: block; margin-left: 0; margin-top: .1rem; }
+
+  /* --- Buttons --- */
+  .btn { font-size: .8rem; padding: .5rem .9rem; }
+  .btn-sm { padding: .4rem .7rem; font-size: .75rem; }
+
+  /* --- Backup bar --- */
+  .backup-bar { padding: .5rem .75rem; gap: .5rem; }
+  .backup-hint { display: none; }
+  .backup-label { font-size: .78rem; }
+
+  /* --- Stats row --- */
+  .stats-row { grid-template-columns: 1fr 1fr; gap: .65rem; margin-bottom: 1.25rem; }
+  .stat-card { padding: .75rem .9rem; }
+  .stat-value { font-size: 1.2rem; }
+  .stat-label { font-size: .72rem; }
+
+  /* --- Material toolbar --- */
+  .mat-toolbar { gap: .5rem; margin-bottom: 1rem; }
+  .mat-search-wrap { max-width: none; flex: 1; min-width: 0; }
+  .mat-sort-select { padding: .5rem .6rem; font-size: .8rem; flex-shrink: 0; }
+  .mat-filter-count { display: none; }
+
+  /* --- Material grid: 2 columns --- */
+  .material-grid { grid-template-columns: repeat(2, 1fr); gap: .65rem; }
+  .material-img, .material-img-placeholder { height: 100px; font-size: 1.6rem; }
+  .material-info { padding: .6rem; }
+  .material-name { font-size: .82rem; }
+  .material-detail { font-size: .7rem; }
+  .material-unit-price { font-size: .8rem; }
+
+  /* Always show edit/delete — no hover on touch */
+  .material-actions {
+    opacity: 1;
+    background: linear-gradient(to bottom, rgba(255,255,255,.7) 0%, transparent 100%);
+    border-radius: 0 var(--radius-lg) 0 0;
+    padding: .2rem;
+  }
+  .material-actions .btn-icon {
+    background: rgba(255,255,255,.9);
+    border-radius: 6px;
+    padding: .3rem;
+    font-size: .8rem;
+    box-shadow: 0 1px 4px rgba(44,31,14,.15);
+  }
+
+  /* --- Forms: prevent iOS auto-zoom (min 16px) --- */
+  input, select, textarea { font-size: 16px !important; }
+  .form-row { grid-template-columns: 1fr; gap: .75rem; }
+  .form-label { font-size: .78rem; }
+  .form-hint { font-size: .72rem; }
+  .computed-badge { font-size: .82rem; }
+
+  /* --- Modal → bottom sheet --- */
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal {
+    border-radius: 20px 20px 0 0;
+    max-height: 93dvh; max-height: 93vh;
+    margin: 0; width: 100%;
+    animation: sheetUp .28s cubic-bezier(.32,.72,0,1);
+  }
+  /* Drag handle */
+  .modal-header { padding: .5rem 1rem .75rem; flex-direction: column; align-items: stretch; }
+  .modal-header::before {
+    content: '';
+    display: block; width: 36px; height: 4px;
+    background: var(--border2); border-radius: 2px;
+    margin: 0 auto .6rem;
+  }
+  .modal-header > * { align-self: auto; }
+  .modal-header > div:last-child { display: flex; justify-content: space-between; align-items: center; }
+  .modal-body { padding: 1rem; }
+  .modal-footer { padding: .75rem 1rem; }
+  .modal-footer .btn { flex: 1; justify-content: center; }
+
+  /* --- Product builder --- */
+  .product-builder { gap: 1rem; }
+  .builder-card { padding: 1rem; }
+  .builder-card-title { font-size: .9rem; margin-bottom: 1rem; }
+
+  /* Right col: not sticky on mobile, flows naturally */
+  .right-col { position: static; max-height: none; overflow: visible; }
+
+  /* --- Material row: 2-line layout on mobile --- */
+  .mat-row-header { display: none; }
+  .material-row {
+    display: grid;
+    grid-template-columns: 1fr 36px;
+    grid-template-rows: auto auto;
+    grid-template-areas: "dd  del" "qty price";
+    gap: .35rem .5rem;
+    padding: .8rem 0;
+  }
+  .material-row > .mat-dd              { grid-area: dd; }
+  .material-row > .btn-icon            { grid-area: del; align-self: center; justify-self: center; }
+  .material-row > input[type="number"] { grid-area: qty; }
+  .material-row > .material-row-price  { grid-area: price; text-align: right; align-self: center; font-size: .8rem; }
+
+  /* Mat dropdown panel: full-screen-ish on mobile */
+  .mat-dd-panel { max-height: 55vmax; }
+
+  /* --- Cost summary --- */
+  .cost-summary { padding: 1rem; }
+  .cost-line { font-size: .85rem; }
+  .cost-line.selling { font-size: 1rem; }
+
+  /* --- Saved products list --- */
+  .product-item { padding: .8rem; gap: .6rem; }
+  .product-item-name { font-size: .875rem; }
+  .product-item-meta { font-size: .72rem; }
+  .product-item-price { font-size: .875rem; }
+
+  /* --- Comparison table: scroll hint --- */
+  .comparison-wrapper { -webkit-overflow-scrolling: touch; }
+  .comparison-table { font-size: .8rem; min-width: 540px; }
+  .comparison-table th, .comparison-table td { padding: .5rem .6rem; }
+
+  /* --- Empty state --- */
+  .empty-state { padding: 2.5rem 1rem; }
+}
+
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0);    }
+}
 </style>
 </head>
 <body>
@@ -304,7 +471,7 @@ select.form-control option{background:#fff;color:var(--text)}
           </div>
           <div class="builder-card-title" style="margin-top:1.25rem">🧪 Nguyên liệu sử dụng</div>
           <div style="margin-bottom:.5rem">
-            <div class="material-row" style="font-size:.75rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--border)">
+            <div class="material-row mat-row-header" style="font-size:.75rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--border)">
               <span>Nguyên liệu</span><span style="text-align:center">Số lượng</span><span style="text-align:right">Thành tiền</span><span></span>
             </div>
           </div>
@@ -418,8 +585,10 @@ select.form-control option{background:#fff;color:var(--text)}
 <div class="modal-overlay hidden" id="material-modal">
   <div class="modal">
     <div class="modal-header">
-      <h3 class="modal-title" id="mat-modal-title">Thêm nguyên liệu</h3>
-      <button class="btn-icon" onclick="closeMaterialModal()">✕</button>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3 class="modal-title" id="mat-modal-title">Thêm nguyên liệu</h3>
+        <button class="btn-icon" onclick="closeMaterialModal()">✕</button>
+      </div>
     </div>
     <div class="modal-body">
       <input type="hidden" id="mat-edit-id">
