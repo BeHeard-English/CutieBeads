@@ -556,17 +556,37 @@ select.form-control option{background:#fff;color:var(--text)}
       <h2 class="section-title">So Sánh Sản Phẩm <small id="compare-count"></small></h2>
       <button class="btn btn-secondary btn-sm" onclick="exportCSV()">⬇ Xuất CSV</button>
     </div>
+
+    <!-- Sort toolbar -->
+    <div class="mat-toolbar" id="compare-toolbar" style="display:none">
+      <span style="font-size:.82rem;font-weight:600;color:var(--text2)">Sắp xếp theo:</span>
+      <select class="mat-sort-select" id="compare-sort" onchange="renderCompare()">
+        <option value="">⇅ Mặc định (thứ tự lưu)</option>
+        <option value="sell-desc">💰 Giá bán: Cao → Thấp</option>
+        <option value="sell-asc">💰 Giá bán: Thấp → Cao</option>
+        <option value="cost-desc">📦 Giá vốn: Cao → Thấp</option>
+        <option value="cost-asc">📦 Giá vốn: Thấp → Cao</option>
+        <option value="profit-desc">📈 Lợi nhuận %: Cao → Thấp</option>
+        <option value="profit-asc">📈 Lợi nhuận %: Thấp → Cao</option>
+        <option value="name-asc">🔤 Tên: A → Z</option>
+      </select>
+    </div>
+
     <div class="comparison-wrapper">
       <table class="comparison-table" id="compare-table">
         <thead>
           <tr>
             <th style="width:160px">Sản phẩm</th>
             <th>Nguyên liệu</th>
-            <th style="width:130px">Chi phí NL</th>
+            <th style="width:130px;cursor:pointer" onclick="setCompareSort('cost')" id="th-cost">
+              Chi phí NL</th>
             <th style="width:110px">Nhân công</th>
-            <th style="width:110px">Giá vốn</th>
-            <th style="width:110px">Giá bán</th>
-            <th style="width:100px">Lợi nhuận</th>
+            <th style="width:110px;cursor:pointer" onclick="setCompareSort('totalcost')" id="th-totalcost">
+              Giá vốn</th>
+            <th style="width:110px;cursor:pointer" onclick="setCompareSort('sell')" id="th-sell">
+              Giá bán</th>
+            <th style="width:100px;cursor:pointer" onclick="setCompareSort('profit')" id="th-profit">
+              Lợi nhuận</th>
           </tr>
         </thead>
         <tbody id="compare-tbody"></tbody>
@@ -1199,22 +1219,66 @@ function renderSavedList() {
 }
 
 // ===================== COMPARE =====================
+const SORT_MAP = {
+  'sell-desc':    (a,b) => b.sellingPrice - a.sellingPrice,
+  'sell-asc':     (a,b) => a.sellingPrice - b.sellingPrice,
+  'cost-desc':    (a,b) => b.matTotal - a.matTotal,
+  'cost-asc':     (a,b) => a.matTotal - b.matTotal,
+  'totalcost-desc': (a,b) => b.totalCost - a.totalCost,
+  'totalcost-asc':  (a,b) => a.totalCost - b.totalCost,
+  'profit-desc':  (a,b) => b.profitMargin - a.profitMargin,
+  'profit-asc':   (a,b) => a.profitMargin - b.profitMargin,
+  'name-asc':     (a,b) => a.name.localeCompare(b.name, 'vi'),
+};
+
+// Click column header: toggle asc/desc for that column
+function setCompareSort(col) {
+  const sel = document.getElementById('compare-sort');
+  const cur = sel.value;
+  sel.value = cur === col + '-desc' ? col + '-asc' : col + '-desc';
+  renderCompare();
+}
+
 function renderCompare() {
-  const tbody = document.getElementById('compare-tbody');
-  const empty = document.getElementById('compare-empty');
-  const count = document.getElementById('compare-count');
+  const tbody    = document.getElementById('compare-tbody');
+  const empty    = document.getElementById('compare-empty');
+  const toolbar  = document.getElementById('compare-toolbar');
+  const count    = document.getElementById('compare-count');
+
   count.textContent = products.length + ' sản phẩm';
 
   if (!products.length) {
     tbody.innerHTML = '';
     document.getElementById('compare-table').style.display = 'none';
+    toolbar.style.display = 'none';
     empty.style.display = 'block';
     return;
   }
   empty.style.display = 'none';
+  toolbar.style.display = 'flex';
   document.getElementById('compare-table').style.display = 'table';
 
-  tbody.innerHTML = products.map(p => {
+  // Sort
+  const sort = document.getElementById('compare-sort').value;
+  const list = sort ? [...products].sort(SORT_MAP[sort]) : [...products];
+
+  // Update column header indicators
+  const cols = ['cost','totalcost','sell','profit'];
+  cols.forEach(c => {
+    const th = document.getElementById('th-' + c);
+    if (!th) return;
+    // Strip old indicator
+    th.textContent = th.textContent.replace(/ [↑↓]$/, '');
+    if (sort === c + '-desc') th.textContent += ' ↓';
+    else if (sort === c + '-asc') th.textContent += ' ↑';
+  });
+
+  // Highlight best (max) values for sell price and profit
+  const maxSell   = Math.max(...list.map(p => p.sellingPrice));
+  const minSell   = Math.min(...list.map(p => p.sellingPrice));
+  const maxProfit = Math.max(...list.map(p => p.profitMargin));
+
+  tbody.innerHTML = list.map(p => {
     const matLines = (p.materials || []).map(item => {
       const mat = materials.find(m => m.id === item.materialId);
       if (!mat) return '';
@@ -1223,6 +1287,13 @@ function renderCompare() {
 
     const profitAmt = p.sellingPrice - p.totalCost;
     const profitPct = p.sellingPrice > 0 ? Math.round((profitAmt / p.sellingPrice) * 100) : 0;
+
+    const sellTag = p.sellingPrice === maxSell && list.length > 1
+      ? `<span style="font-size:.68rem;background:#fff3cd;color:#856404;padding:.1rem .35rem;border-radius:4px;margin-left:.35rem">Mắc nhất</span>` : '';
+    const cheapTag = p.sellingPrice === minSell && list.length > 1
+      ? `<span style="font-size:.68rem;background:#d4edda;color:#155724;padding:.1rem .35rem;border-radius:4px;margin-left:.35rem">Rẻ nhất</span>` : '';
+    const profitTag = p.profitMargin === maxProfit && list.length > 1
+      ? `<span style="font-size:.68rem;background:#e8f5ee;color:var(--success);padding:.1rem .35rem;border-radius:4px;margin-left:.35rem">LN cao nhất</span>` : '';
 
     return `
       <tr>
@@ -1234,10 +1305,10 @@ function renderCompare() {
         <td class="td-cost">${fmtPrice(p.matTotal)}</td>
         <td>${fmtPrice(p.laborCost || 0)}</td>
         <td class="td-cost">${fmtPrice(p.totalCost)}</td>
-        <td class="td-sell">${fmtPrice(p.sellingPrice)}</td>
+        <td class="td-sell">${fmtPrice(p.sellingPrice)}${sellTag}${cheapTag}</td>
         <td class="td-profit">
           ${fmtPrice(profitAmt)}<br>
-          <span class="badge-profit">${profitPct}%</span>
+          <span class="badge-profit">${profitPct}%</span>${profitTag}
         </td>
       </tr>
     `;
